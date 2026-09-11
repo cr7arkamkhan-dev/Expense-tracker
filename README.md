@@ -1,2 +1,1072 @@
 # Expense-tracker
 Index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Personal Expense Tracker</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #e0e7ff;
+            --success: #10b981;
+            --danger: #ef4444;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+        }
+
+        header {
+            background-color: var(--surface);
+            padding: 16px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .main-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            padding-bottom: 80px; /* Space for bottom nav */
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Navigation Bar */
+        nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background-color: var(--surface);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .nav-item {
+            background: none;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            font-weight: 500;
+            gap: 2px;
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-item svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        /* Cards & UI Elements */
+        .card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+        }
+
+        .card h3 {
+            font-size: 1rem;
+            margin-bottom: 12px;
+            color: var(--text-main);
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            background: var(--surface);
+            color: var(--text-main);
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+        }
+
+        button.btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+
+        button.btn:active {
+            opacity: 0.9;
+        }
+
+        /* Filter Row */
+        .filter-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .filter-row select {
+            flex: 1;
+        }
+
+        /* Stat Displays */
+        .stat-display {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 8px 0;
+        }
+
+        /* Category Manager Link */
+        .add-cat-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        /* Transaction List */
+        .transaction-list {
+            list-style: none;
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .tx-info h4 {
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+        }
+
+        .tx-info p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .tx-right {
+            text-align: right;
+        }
+
+        .tx-amount {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .tx-amount.income { color: var(--success); }
+        .tx-amount.expense { color: var(--danger); }
+
+        .tx-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .tx-actions button {
+            background: none;
+            border: none;
+            font-size: 0.75rem;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+
+        .btn-edit { color: var(--primary); }
+        .btn-delete { color: var(--danger); }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            padding: 20px 0;
+        }
+
+        /* Search Verification Banner */
+        .search-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* P&L Specific Styles */
+        .pnl-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        @media(min-width: 640px) {
+            .pnl-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .badge.profit { background-color: #d1fae5; color: #065f46; }
+        .badge.loss { background-color: #fee2e2; color: #991b1b; }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            padding: 16px;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-content {
+            background: var(--surface);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <header id="header-title">Overview</header>
+
+    <div class="main-container">
+        
+        <!-- ================= OVERVIEW TAB ================= -->
+        <div id="tab-overview" class="tab-content active">
+            <div class="filter-row">
+                <select id="overview-month" onchange="updateOverview()">
+                    <option value="0">January</option>
+                    <option value="1">February</option>
+                    <option value="2">March</option>
+                    <option value="3">April</option>
+                    <option value="4">May</option>
+                    <option value="5">June</option>
+                    <option value="6">July</option>
+                    <option value="7">August</option>
+                    <option value="8">September</option>
+                    <option value="9">October</option>
+                    <option value="10">November</option>
+                    <option value="11">December</option>
+                </select>
+                <select id="overview-year" onchange="updateOverview()">
+                    <!-- Years injected via JS -->
+                </select>
+            </div>
+
+            <div class="card" style="background: linear-gradient(135deg, var(--primary-light), var(--surface)); border-color: var(--primary);">
+                <h3>Remaining Balance (Income - Expenses)</h3>
+                <div class="stat-display" id="overview-balance-total">₹0.00</div>
+            </div>
+
+            <div class="card">
+                <h3>Expense Overview</h3>
+                <div class="form-group" style="margin-bottom: 8px;">
+                    <label>Select Category</label>
+                    <select id="overview-expense-cat" onchange="calculateCategoryExpense()">
+                        <option value="ALL">All Categories</option>
+                    </select>
+                </div>
+                <div class="stat-display" id="overview-expense-total">₹0.00</div>
+            </div>
+
+            <div class="card">
+                <h3>Income Overview</h3>
+                <div class="form-group" style="margin-bottom: 8px;">
+                    <label>Select Category</label>
+                    <select id="overview-income-cat" onchange="calculateCategoryIncome()">
+                        <option value="ALL">All Categories</option>
+                    </select>
+                </div>
+                <div class="stat-display" id="overview-income-total" style="color: var(--success);">₹0.00</div>
+            </div>
+
+            <div class="card">
+                <h3>Selected Month's Activity</h3>
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <input type="text" id="overview-search-input" placeholder="Search category, note, amount, date..." oninput="updateOverview()">
+                </div>
+                <div id="overview-search-meta" class="search-meta"></div>
+                <ul id="overview-transaction-list" class="transaction-list"></ul>
+            </div>
+        </div>
+
+        <!-- ================= INCOME TAB ================= -->
+        <div id="tab-income" class="tab-content">
+            <div class="card">
+                <h3>Add Income</h3>
+                <form id="income-form" onsubmit="handleFormSubmit(event, 'income')">
+                    <input type="hidden" id="income-edit-id">
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="income-category" required></select>
+                        <div class="add-cat-row">
+                            <input type="text" id="new-income-cat-input" placeholder="Add custom category">
+                            <button type="button" class="btn" style="width: 80px; margin-top:0;" onclick="addCustomCategory('income')">Add</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount</label>
+                        <input type="number" step="0.01" id="income-amount" placeholder="0.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Note</label>
+                        <input type="text" id="income-note" placeholder="Source details, client name, etc.">
+                    </div>
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="income-date" required>
+                    </div>
+                    <button type="submit" class="btn" id="income-submit-btn">Save Income</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h3>Recorded Income Entries</h3>
+                <ul id="income-list" class="transaction-list"></ul>
+            </div>
+        </div>
+
+        <!-- ================= EXPENSE TAB ================= -->
+        <div id="tab-expense" class="tab-content">
+            <div class="card">
+                <h3>Add Expense</h3>
+                <form id="expense-form" onsubmit="handleFormSubmit(event, 'expense')">
+                    <input type="hidden" id="expense-edit-id">
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="expense-category" required></select>
+                        <div class="add-cat-row">
+                            <input type="text" id="new-expense-cat-input" placeholder="Add custom category">
+                            <button type="button" class="btn" style="width: 80px; margin-top:0;" onclick="addCustomCategory('expense')">Add</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount</label>
+                        <input type="number" step="0.01" id="expense-amount" placeholder="0.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Note</label>
+                        <input type="text" id="expense-note" placeholder="What was this for?" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="expense-date" required>
+                    </div>
+                    <button type="submit" class="btn" id="expense-submit-btn">Save Expense</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h3>Recorded Expense Entries</h3>
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <input type="text" id="expense-search-input" placeholder="Search category, note, amount, date..." oninput="renderTransactionList('expense')">
+                </div>
+                <div id="expense-search-meta" class="search-meta"></div>
+                <ul id="expense-list" class="transaction-list"></ul>
+            </div>
+        </div>
+
+        <!-- ================= SAVINGS TAB ================= -->
+        <div id="tab-savings" class="tab-content">
+            <div class="card">
+                <h3>Log Savings Allocation</h3>
+                <form id="savings-form" onsubmit="handleFormSubmit(event, 'savings')">
+                    <input type="hidden" id="savings-edit-id">
+                    <div class="form-group">
+                        <label>Category / Account</label>
+                        <select id="savings-category" required></select>
+                        <div class="add-cat-row">
+                            <input type="text" id="new-savings-cat-input" placeholder="Add custom category">
+                            <button type="button" class="btn" style="width: 80px; margin-top:0;" onclick="addCustomCategory('savings')">Add</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount</label>
+                        <input type="number" step="0.01" id="savings-amount" placeholder="0.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Note</label>
+                        <input type="text" id="savings-note" placeholder="Emergency fund, bank name, etc.">
+                    </div>
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="savings-date" required>
+                    </div>
+                    <button type="submit" class="btn" id="savings-submit-btn">Save Allocation</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h3>Recorded Savings</h3>
+                <ul id="savings-list" class="transaction-list"></ul>
+            </div>
+        </div>
+
+        <!-- ================= INVESTMENT TAB ================= -->
+        <div id="tab-investment" class="tab-content">
+            <div class="card">
+                <h3>Log Investment Entry</h3>
+                <form id="investment-form" onsubmit="handleFormSubmit(event, 'investment')">
+                    <input type="hidden" id="investment-edit-id">
+                    <div class="form-group">
+                        <label>Category / Asset</label>
+                        <select id="investment-category" required></select>
+                        <div class="add-cat-row">
+                            <input type="text" id="new-investment-cat-input" placeholder="Add custom category">
+                            <button type="button" class="btn" style="width: 80px; margin-top:0;" onclick="addCustomCategory('investment')">Add</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount</label>
+                        <input type="number" step="0.01" id="investment-amount" placeholder="0.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Note</label>
+                        <input type="text" id="investment-note" placeholder="Stock name, mutual fund, etc.">
+                    </div>
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="investment-date" required>
+                    </div>
+                    <button type="submit" class="btn" id="investment-submit-btn">Save Investment</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h3>Recorded Investments</h3>
+                <ul id="investment-list" class="transaction-list"></ul>
+            </div>
+        </div>
+
+        <!-- ================= P&L TAB ================= -->
+        <div id="tab-pnl" class="tab-content">
+            <div class="card">
+                <h3>Monthly Profit & Loss Statements</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+                    Track monthly net savings with real-time green/red indicators and export formal statements.
+                </p>
+                <div id="pnl-monthly-container" class="pnl-grid">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- P&L Detail Modal -->
+    <div id="pnl-modal" class="modal-overlay" onclick="closePnlModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 id="modal-month-title" style="margin: 0;">Statement Details</h3>
+                <button onclick="document.getElementById('pnl-modal').classList.remove('open')" style="background:none; border:none; font-size: 1.2rem; cursor:pointer; color: var(--text-muted);">&times;</button>
+            </div>
+            <div id="modal-statement-body"></div>
+            <div style="display: flex; gap: 8px; margin-top: 20px;">
+                <button class="btn" id="modal-export-btn" style="flex: 1;">Export Statement (CSV)</button>
+                <button class="btn" onclick="document.getElementById('pnl-modal').classList.remove('open')" style="flex: 1; background-color: var(--text-muted);">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <nav>
+        <button class="nav-item active" onclick="switchTab('overview', this)">
+            <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+            Overview
+        </button>
+        <button class="nav-item" onclick="switchTab('income', this)">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"/></svg>
+            Income
+        </button>
+        <button class="nav-item" onclick="switchTab('expense', this)">
+            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+            Expense
+        </button>
+        <button class="nav-item" onclick="switchTab('savings', this)">
+            <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+            Savings
+        </button>
+        <button class="nav-item" onclick="switchTab('investment', this)">
+            <svg viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
+            Invest
+        </button>
+        <button class="nav-item" onclick="switchTab('pnl', this)">
+            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+            P&L
+        </button>
+    </nav>
+
+    <script>
+        // Data Store
+        let appData = JSON.parse(localStorage.getItem('personal_expense_app')) || {
+            income: [],
+            expense: [],
+            savings: [],
+            investment: [],
+            categories: {
+                income: ['Salary', 'Business', 'Freelance', 'Investments', 'Gift'],
+                expense: ['Food & Dining', 'Groceries', 'Rent', 'Utilities', 'Transport', 'Shopping', 'Entertainment'],
+                savings: ['Emergency Fund', 'Bank Account', 'Cash'],
+                investment: ['Stocks', 'Mutual Funds', 'Crypto', 'Gold', 'Real Estate']
+            }
+        };
+
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+        window.onload = function() {
+            const now = new Date();
+            
+            const yearSelect = document.getElementById('overview-year');
+            const currentYear = now.getFullYear();
+            for (let y = currentYear - 3; y <= currentYear + 3; y++) {
+                let opt = document.createElement('option');
+                opt.value = y;
+                opt.textContent = y;
+                if (y === currentYear) opt.selected = true;
+                yearSelect.appendChild(opt);
+            }
+
+            document.getElementById('overview-month').value = now.getMonth();
+
+            const todayStr = now.toISOString().split('T')[0];
+            ['income-date', 'expense-date', 'savings-date', 'investment-date'].forEach(id => {
+                document.getElementById(id).value = todayStr;
+            });
+
+            refreshAll();
+        };
+
+        function saveData() {
+            localStorage.setItem('personal_expense_app', JSON.stringify(appData));
+        }
+
+        function switchTab(tabName, el) {
+            document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(ni => ni.classList.remove('active'));
+            
+            document.getElementById('tab-' + tabName).classList.add('active');
+            el.classList.add('active');
+
+            const titles = {
+                overview: 'Overview',
+                income: 'Income Tracker',
+                expense: 'Expense Tracker',
+                savings: 'Savings Tracker',
+                investment: 'Investment Tracker',
+                pnl: 'Profit & Loss Statement'
+            };
+            document.getElementById('header-title').textContent = titles[tabName];
+            
+            refreshAll();
+        }
+
+        function populateCategories() {
+            ['income', 'expense', 'savings', 'investment'].forEach(type => {
+                const select = document.getElementById(`${type}-category`);
+                select.innerHTML = '';
+                appData.categories[type].forEach(cat => {
+                    let opt = document.createElement('option');
+                    opt.value = cat;
+                    opt.textContent = cat;
+                    select.appendChild(opt);
+                });
+            });
+            updateOverviewCategoryDropdowns();
+        }
+
+        function updateOverviewCategoryDropdowns() {
+            const expSelect = document.getElementById('overview-expense-cat');
+            const currentExpVal = expSelect.value;
+            expSelect.innerHTML = '<option value="ALL">All Categories</option>';
+            appData.categories.expense.forEach(cat => {
+                let opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = cat;
+                expSelect.appendChild(opt);
+            });
+            expSelect.value = currentExpVal || 'ALL';
+
+            const incSelect = document.getElementById('overview-income-cat');
+            const currentIncVal = incSelect.value;
+            incSelect.innerHTML = '<option value="ALL">All Categories</option>';
+            appData.categories.income.forEach(cat => {
+                let opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = cat;
+                incSelect.appendChild(opt);
+            });
+            incSelect.value = currentIncVal || 'ALL';
+        }
+
+        function addCustomCategory(type) {
+            const input = document.getElementById(`new-${type}-cat-input`);
+            const val = input.value.trim();
+            if (val && !appData.categories[type].includes(val)) {
+                appData.categories[type].push(val);
+                input.value = '';
+                saveData();
+                populateCategories();
+                document.getElementById(`${type}-category`).value = val;
+            }
+        }
+
+        function handleFormSubmit(e, type) {
+            e.preventDefault();
+            const editId = document.getElementById(`${type}-edit-id`).value;
+            const category = document.getElementById(`${type}-category`).value;
+            const amount = parseFloat(document.getElementById(`${type}-amount`).value);
+            const note = document.getElementById(`${type}-note`).value;
+            const date = document.getElementById(`${type}-date`).value;
+
+            if (editId) {
+                const item = appData[type].find(i => i.id == editId);
+                if (item) {
+                    item.category = category;
+                    item.amount = amount;
+                    item.note = note;
+                    item.date = date;
+                }
+                document.getElementById(`${type}-edit-id`).value = '';
+                document.getElementById(`${type}-submit-btn`).textContent = type === 'income' ? 'Save Income' : type === 'expense' ? 'Save Expense' : type === 'savings' ? 'Save Allocation' : 'Save Investment';
+            } else {
+                const newItem = { id: Date.now(), category, amount, note, date };
+                appData[type].push(newItem);
+            }
+
+            saveData();
+            e.target.reset();
+            document.getElementById(`${type}-date`).value = new Date().toISOString().split('T')[0];
+            refreshAll();
+        }
+
+        function refreshAll() {
+            populateCategories();
+            renderTransactionList('income');
+            renderTransactionList('expense');
+            renderTransactionList('savings');
+            renderTransactionList('investment');
+            updateOverview();
+            renderPnLStatements();
+        }
+
+        function renderTransactionList(type) {
+            const listEl = document.getElementById(`${type}-list`);
+            const searchInputEl = document.getElementById(`${type}-search-input`);
+            const searchMetaEl = document.getElementById(`${type}-search-meta`);
+            
+            listEl.innerHTML = '';
+            
+            const query = searchInputEl ? searchInputEl.value.toLowerCase().trim() : '';
+            let sortedItems = [...appData[type]].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (query) {
+                sortedItems = sortedItems.filter(item => 
+                    item.category.toLowerCase().includes(query) ||
+                    (item.note && item.note.toLowerCase().includes(query)) ||
+                    item.amount.toString().includes(query) ||
+                    item.date.includes(query)
+                );
+            }
+
+            if (searchMetaEl) {
+                if (query) {
+                    const totalSum = sortedItems.reduce((acc, curr) => acc + curr.amount, 0);
+                    searchMetaEl.innerHTML = `<span>Found: ${sortedItems.length} match(es)</span><span>Total: ₹${totalSum.toFixed(2)}</span>`;
+                } else {
+                    searchMetaEl.innerHTML = '';
+                }
+            }
+
+            if (sortedItems.length === 0) {
+                listEl.innerHTML = `<li class="empty-state">No entries found.</li>`;
+                return;
+            }
+
+            sortedItems.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'transaction-item';
+                li.innerHTML = `
+                    <div class="tx-info">
+                        <h4>${item.category}</h4>
+                        <p>${item.note || 'No note'} • ${item.date}</p>
+                    </div>
+                    <div class="tx-right">
+                        <div class="tx-amount ${type === 'income' ? 'income' : type === 'expense' ? 'expense' : ''}">₹${item.amount.toFixed(2)}</div>
+                        <div class="tx-actions">
+                            <button class="btn-edit" onclick="editItem('${type}', ${item.id})">Edit</button>
+                            <button class="btn-delete" onclick="deleteItem('${type}', ${item.id})">Delete</button>
+                        </div>
+                    </div>
+                `;
+                listEl.appendChild(li);
+            });
+        }
+
+        function editItem(type, id) {
+            const navIndex = type === 'income' ? 1 : type === 'expense' ? 2 : type === 'savings' ? 3 : 4;
+            switchTab(type, document.querySelectorAll('.nav-item')[navIndex]);
+            const item = appData[type].find(i => i.id === id);
+            if (item) {
+                document.getElementById(`${type}-edit-id`).value = item.id;
+                document.getElementById(`${type}-category`).value = item.category;
+                document.getElementById(`${type}-amount`).value = item.amount;
+                document.getElementById(`${type}-note`).value = item.note;
+                document.getElementById(`${type}-date`).value = item.date;
+                document.getElementById(`${type}-submit-btn`).textContent = 'Update Record';
+            }
+        }
+
+        function deleteItem(type, id) {
+            if (confirm('Are you sure you want to delete this record?')) {
+                appData[type] = appData[type].filter(i => i.id !== id);
+                saveData();
+                refreshAll();
+            }
+        }
+
+        function updateOverview() {
+            const selectedMonth = parseInt(document.getElementById('overview-month').value);
+            const selectedYear = parseInt(document.getElementById('overview-year').value);
+
+            calculateCategoryExpense();
+            calculateCategoryIncome();
+            calculateRemainingBalance(selectedMonth, selectedYear);
+            renderOverviewTransactions(selectedMonth, selectedYear);
+        }
+
+        function getFilteredDataForPeriod(type, month, year) {
+            return appData[type].filter(item => {
+                const itemDate = new Date(item.date);
+                return itemDate.getMonth() === month && itemDate.getFullYear() === year;
+            });
+        }
+
+        function calculateCategoryExpense() {
+            const selectedMonth = parseInt(document.getElementById('overview-month').value);
+            const selectedYear = parseInt(document.getElementById('overview-year').value);
+            const selectedCat = document.getElementById('overview-expense-cat').value;
+            const filteredExpenses = getFilteredDataForPeriod('expense', selectedMonth, selectedYear);
+
+            const total = filteredExpenses
+                .filter(item => selectedCat === 'ALL' || item.category === selectedCat)
+                .reduce((sum, item) => sum + item.amount, 0);
+
+            document.getElementById('overview-expense-total').textContent = `₹${total.toFixed(2)}`;
+        }
+
+        function calculateCategoryIncome() {
+            const selectedMonth = parseInt(document.getElementById('overview-month').value);
+            const selectedYear = parseInt(document.getElementById('overview-year').value);
+            const selectedCat = document.getElementById('overview-income-cat').value;
+            const filteredIncome = getFilteredDataForPeriod('income', selectedMonth, selectedYear);
+
+            const total = filteredIncome
+                .filter(item => selectedCat === 'ALL' || item.category === selectedCat)
+                .reduce((sum, item) => sum + item.amount, 0);
+
+            document.getElementById('overview-income-total').textContent = `₹${total.toFixed(2)}`;
+        }
+
+        function calculateRemainingBalance(month, year) {
+            const incomeList = getFilteredDataForPeriod('income', month, year);
+            const expenseList = getFilteredDataForPeriod('expense', month, year);
+
+            const totalIncome = incomeList.reduce((sum, i) => sum + i.amount, 0);
+            const totalExpense = expenseList.reduce((sum, i) => sum + i.amount, 0);
+            const balance = totalIncome - totalExpense;
+
+            const balanceEl = document.getElementById('overview-balance-total');
+            balanceEl.textContent = `₹${balance.toFixed(2)}`;
+            balanceEl.style.color = balance >= 0 ? 'var(--success)' : 'var(--danger)';
+        }
+
+        function renderOverviewTransactions(month, year) {
+            const listEl = document.getElementById('overview-transaction-list');
+            const searchInputEl = document.getElementById('overview-search-input');
+            const searchMetaEl = document.getElementById('overview-search-meta');
+            
+            listEl.innerHTML = '';
+
+            const periodIncome = getFilteredDataForPeriod('income', month, year).map(i => ({...i, type: 'income'}));
+            const periodExpense = getFilteredDataForPeriod('expense', month, year).map(i => ({...i, type: 'expense'}));
+            let combined = [...periodIncome, ...periodExpense].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            const query = searchInputEl ? searchInputEl.value.toLowerCase().trim() : '';
+            if (query) {
+                combined = combined.filter(item => 
+                    item.category.toLowerCase().includes(query) ||
+                    (item.note && item.note.toLowerCase().includes(query)) ||
+                    item.amount.toString().includes(query) ||
+                    item.date.includes(query) ||
+                    item.type.includes(query)
+                );
+            }
+
+            if (searchMetaEl) {
+                if (query) {
+                    const matchSum = combined.reduce((acc, curr) => acc + curr.amount, 0);
+                    searchMetaEl.innerHTML = `<span>Found: ${combined.length} match(es)</span>`;
+                } else {
+                    searchMetaEl.innerHTML = '';
+                }
+            }
+
+            if (combined.length === 0) {
+                listEl.innerHTML = `<li class="empty-state">No matching transactions found for this period.</li>`;
+                return;
+            }
+
+            combined.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'transaction-item';
+                li.innerHTML = `
+                    <div class="tx-info">
+                        <h4>${item.category} <span style="font-size:0.7rem; color:var(--text-muted);">(${item.type})</span></h4>
+                        <p>${item.note || 'No note'} • ${item.date}</p>
+                    </div>
+                    <div class="tx-right">
+                        <div class="tx-amount ${item.type}">${item.type === 'income' ? '+' : '-'}₹${item.amount.toFixed(2)}</div>
+                    </div>
+                `;
+                listEl.appendChild(li);
+            });
+        }
+
+        // P&L Feature Implementation
+        function getAllActiveMonthYears() {
+            const set = new Set();
+            ['income', 'expense'].forEach(type => {
+                appData[type].forEach(item => {
+                    const d = new Date(item.date);
+                    set.add(`${d.getFullYear()}-${d.getMonth()}`);
+                });
+            });
+            return Array.from(set).sort((a, b) => {
+                const [y1, m1] = a.split('-').map(Number);
+                const [y2, m2] = b.split('-').map(Number);
+                return y2 !== y1 ? y2 - y1 : m2 - m1;
+            });
+        }
+
+        function renderPnLStatements() {
+            const container = document.getElementById('pnl-monthly-container');
+            container.innerHTML = '';
+
+            const monthYears = getAllActiveMonthYears();
+
+            if (monthYears.length === 0) {
+                container.innerHTML = `<div class="empty-state" style="grid-column: 1 / -1;">No transaction records available to generate P&L statements.</div>`;
+                return;
+            }
+
+            monthYears.forEach(myStr => {
+                const [year, month] = myStr.split('-').map(Number);
+                const monthName = monthNames[month];
+                const label = `${monthName} ${year}`;
+
+                const incomeList = getFilteredDataForPeriod('income', month, year);
+                const expenseList = getFilteredDataForPeriod('expense', month, year);
+
+                const totalIncome = incomeList.reduce((sum, i) => sum + i.amount, 0);
+                const totalExpense = expenseList.reduce((sum, i) => sum + i.amount, 0);
+                const netResult = totalIncome - totalExpense;
+                const isProfit = netResult >= 0;
+
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.margin = '0';
+                card.style.cursor = 'pointer';
+                card.onclick = () => openPnlModal(month, year);
+
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <h4 style="font-size: 1.05rem; font-weight: 700;">${label}</h4>
+                        <span class="badge ${isProfit ? 'profit' : 'loss'}">${isProfit ? 'Profit' : 'Loss'}</span>
+                    </div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted); space-y: 4px; margin-bottom: 12px;">
+                        <div>Income: ₹${totalIncome.toFixed(2)}</div>
+                        <div>Expenses: ₹${totalExpense.toFixed(2)}</div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 8px; font-weight: 700;">
+                        <span>Net P&L:</span>
+                        <span style="color: ${isProfit ? 'var(--success)' : 'var(--danger)'};">
+                            ${isProfit ? '+' : '-'}₹${Math.abs(netResult).toFixed(2)}
+                        </span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function openPnlModal(month, year) {
+            const monthName = monthNames[month];
+            document.getElementById('modal-month-title').textContent = `P&L Statement: ${monthName} ${year}`;
+
+            const incomeList = getFilteredDataForPeriod('income', month, year);
+            const expenseList = getFilteredDataForPeriod('expense', month, year);
+            const totalIncome = incomeList.reduce((sum, i) => sum + i.amount, 0);
+            const totalExpense = expenseList.reduce((sum, i) => sum + i.amount, 0);
+            const netResult = totalIncome - totalExpense;
+            const isProfit = netResult >= 0;
+
+            let bodyHtml = `
+                <div style="margin-bottom: 16px;">
+                    <h4 style="font-size: 0.9rem; color: var(--success); margin-bottom: 6px;">Incomes</h4>
+                    <ul class="transaction-list" style="margin-bottom: 12px;">
+            `;
+            if (incomeList.length === 0) {
+                bodyHtml += `<li style="font-size: 0.85rem; color: var(--text-muted);">No income entries.</li>`;
+            } else {
+                incomeList.forEach(i => {
+                    bodyHtml += `<li class="transaction-item"><div class="tx-info"><h4>${i.category}</h4><p>${i.note || ''}</p></div><div class="tx-amount income">+₹${i.amount.toFixed(2)}</div></li>`;
+                });
+            }
+            bodyHtml += `</ul>`;
+
+            bodyHtml += `
+                    <h4 style="font-size: 0.9rem; color: var(--danger); margin-bottom: 6px;">Expenses</h4>
+                    <ul class="transaction-list" style="margin-bottom: 16px;">
+            `;
+            if (expenseList.length === 0) {
+                bodyHtml += `<li style="font-size: 0.85rem; color: var(--text-muted);">No expense entries.</li>`;
+            } else {
+                expenseList.forEach(e => {
+                    bodyHtml += `<li class="transaction-item"><div class="tx-info"><h4>${e.category}</h4><p>${e.note || ''}</p></div><div class="tx-amount expense">-₹${e.amount.toFixed(2)}</div></li>`;
+                });
+            }
+            bodyHtml += `</ul>`;
+
+            bodyHtml += `
+                <div style="background: var(--background); padding: 12px; border-radius: 10px; font-size: 0.9rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>Total Income:</span><span style="font-weight:700; color:var(--success);">₹${totalIncome.toFixed(2)}</span></div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span>Total Expenses:</span><span style="font-weight:700; color:var(--danger);">₹${totalExpense.toFixed(2)}</span></div>
+                    <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 8px; font-weight: 700;">
+                        <span>Net Result:</span>
+                        <span style="color: ${isProfit ? 'var(--success)' : 'var(--danger)'};">${isProfit ? '+₹' : '-₹'}${Math.abs(netResult).toFixed(2)} (${isProfit ? 'Profit' : 'Loss'})</span>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modal-statement-body').innerHTML = bodyHtml;
+            document.getElementById('modal-export-btn').onclick = () => exportPnLCsv(month, year);
+            document.getElementById('pnl-modal').classList.add('open');
+        }
+
+        function closePnlModal(e) {
+            document.getElementById('pnl-modal').classList.remove('open');
+        }
+
+        function exportPnLCsv(month, year) {
+            const monthName = monthNames[month];
+            const incomeList = getFilteredDataForPeriod('income', month, year);
+            const expenseList = getFilteredDataForPeriod('expense', month, year);
+            const totalIncome = incomeList.reduce((sum, i) => sum + i.amount, 0);
+            const totalExpense = expenseList.reduce((sum, i) => sum + i.amount, 0);
+            const netResult = totalIncome - totalExpense;
+
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += `Personal P&L Statement - ${monthName} ${year}\n\n`;
+            csvContent += "Type,Category,Description,Date,Amount (INR)\n";
+
+            incomeList.forEach(i => {
+                csvContent += `Income,"${i.category}","${i.note || ''}",${i.date},${i.amount}\n`;
+            });
+            expenseList.forEach(e => {
+                csvContent += `Expense,"${e.category}","${e.note || ''}",${e.date},${e.amount}\n`;
+            });
+
+            csvContent += `\nTotal Income,,,${totalIncome}\n`;
+            csvContent += `Total Expenses,,,${totalExpense}\n`;
+            csvContent += `Net Result (${netResult >= 0 ? 'Profit' : 'Loss'}),,,${netResult}\n`;
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Personal_PnL_${monthName}_${year}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
